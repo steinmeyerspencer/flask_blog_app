@@ -29,6 +29,7 @@ def get_post(post_id):
         abort(404)
         
     return post
+    
 
 # use the app.route() decorator to create a Flask view function called index()
 @app.route('/')
@@ -45,6 +46,7 @@ def index():
     # send posts to the index.html template to be displayed
     
     return render_template('index.html', posts = posts)
+
 
 # route to create a post
 @app.route('/create/', methods = ('GET', 'POST'))
@@ -70,7 +72,6 @@ def create():
             return redirect(url_for('index'))
     
     return render_template('create.html')
-
 
 
 # create a route to edit a post. load page with get or post method
@@ -105,5 +106,31 @@ def edit(id):
     # if GET then display page
     if request.method == 'GET':
         return render_template('edit.html', post = post)
+    
+# create a route to delete a post
+# delete page will only be processed with a POST method
+# post id is url param
+@app.route('/<int:id>/delete/', methods = ('POST',))
+def delete(id):
+    # get post 
+    post = get_post(id)
+    
+    # get connection to database
+    conn = get_db_connection()
+    
+    # execute delete query
+    conn.execute('DELETE from posts where id = ?', (id,))
+    
+    # commit and close the connection
+    conn.commit()
+    conn.close()
+    
+    # flash success message
+    flash('"{}" was successfully deleted'.format(post['title']))
+    
+    # go back to home page
+    return redirect(url_for('index'))
+
+
 
 app.run(port=5008)
